@@ -22,7 +22,7 @@ int AI(char board[rows][collumns], char );
 int frees( char board[rows][collumns]);
 void freesLocations(int*, char board[rows][collumns]);
 void testPlace(char board[rows][collumns], char player, int placement);
-int moveEval(char board[rows][collumns], char player, int depth, int maxDepth);
+int moveEval(char board[rows][collumns], char player, int depth, int maxDepth, int goodness);
 void printOutComes(int a[], int b[], int);
 
 int main()
@@ -133,9 +133,7 @@ char gameState(char board[rows][collumns])
                         {
                         connected++;
                         if(connected == 4)
-                            {
                             return board[i][k];
-                            }
                         k++;
                         }
                     if(i < rows - 3)
@@ -148,27 +146,23 @@ char gameState(char board[rows][collumns])
                             {
                             connected++;
                             if(connected == 4)
-                                {
                                 return board[t][k];
-                                }
                             k++;
                             t++;
                             }
                         }
                     }
-                if(i < rows - 3)
+                if(i <rows - 3)
                     {
                     connected = 1;
                     k = j;
                     t = i;
                     //checks vertical win
-                    while(board[t][k] == board[t+1][k] && k < collumns-1 && t < rows-1)
+                    while(board[t][k] == board[t+1][k] && t < rows-1)
                         {
                         connected++;
                         if(connected == 4)
-                            {
                             return board[t][k];
-                            }
                         t++;
                         }
                    if(j > 2)
@@ -177,13 +171,11 @@ char gameState(char board[rows][collumns])
                        k = j;
                        t = i;
                        //checks left diagonal win
-                       while(board[t][k] == board[t+1][k-1] && k < collumns-1 && t < rows-1)
+                       while(board[t][k] == board[t+1][k-1] && k >= 0 && t < rows-1)
                            {
                            connected++;
                            if(connected == 4)
-                               {
                                return board[t][k];
-                               }
                            t++;
                            k--;
                            }
@@ -228,7 +220,8 @@ int AI(char board[rows][collumns], char player)
     freesLocations(freeSpaces, boardCopy);
     int outComes[free];
     int depth = 0;
-    int maxDepth = 50;
+    int maxDepth = 17;
+    int goodness = 0;
     
     for(int i = 0; i < free; i++)
         {
@@ -242,12 +235,15 @@ int AI(char board[rows][collumns], char player)
         else if(gameState(boardCopy ) == 'X')
             outComes[i] = -10;
         else if( gameState(boardCopy) == 'O')
+            {
+            printOutComes(outComes, freeSpaces, free);
             return freeSpaces[i];
+            }
         else
             {
             player = 'X';
             depth = 0;
-            outComes[i] = moveEval(boardCopy, player, depth, maxDepth);
+            outComes[i] = moveEval(boardCopy, player, depth, maxDepth, goodness);
             if(outComes[i] == 10)
                 {
                 printOutComes(outComes, freeSpaces, free);
@@ -308,7 +304,7 @@ void testPlace(char board[rows][collumns], char player, int placement)
         }
 }
 
-int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
+int moveEval(char board[rows][collumns], char player, int depth, int maxDepth, int goodness)
 {
     if(depth >= maxDepth)
         return 0;
@@ -343,7 +339,7 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
                 {
                 player = 'X';
                 depth++;
-                outComes[i] = moveEval(boardCopy, player, depth, maxDepth);
+                outComes[i] = moveEval(boardCopy, player, depth, maxDepth, goodness);
                 if(outComes[i] == 10)
                     return 10;
                 }
@@ -377,7 +373,7 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
                 {
                 player = 'O';
                 depth++;
-                outComes[i] = moveEval(boardCopy, player, depth, maxDepth);
+                outComes[i] = moveEval(boardCopy, player, depth, maxDepth, goodness);
                 if(outComes[i] == -10)
                     {
                     return -10;
