@@ -22,13 +22,13 @@ int AI(char board[rows][collumns], char );
 int frees( char board[rows][collumns]);
 void freesLocations(int*, char board[rows][collumns]);
 void testPlace(char board[rows][collumns], char player, int placement);
-int moveEval(char board[rows][collumns], char player, int depth, int maxDepth, int goodness);
+int moveEval(char board[rows][collumns], char player, int depth, int maxDepth);
 void printOutComes(int a[], int b[], int);
 
 int main()
 {
     srand(time(0));
-    char startingPlayer = 'O';
+    char startingPlayer = 'X';
     char player = startingPlayer;
     char board[rows][collumns];
     short gameOn = 1;
@@ -221,7 +221,7 @@ int AI(char board[rows][collumns], char player)
     int outComes[free];
     int depth = 0;
     int maxDepth = 17;
-    int goodness = 0;
+    int out;
     
     for(int i = 0; i < free; i++)
         {
@@ -233,7 +233,9 @@ int AI(char board[rows][collumns], char player)
         if( gameState(boardCopy) == 'D')
             outComes[i] = 0;
         else if(gameState(boardCopy ) == 'X')
+            {
             outComes[i] = -10;
+            }
         else if( gameState(boardCopy) == 'O')
             {
             printOutComes(outComes, freeSpaces, free);
@@ -243,7 +245,7 @@ int AI(char board[rows][collumns], char player)
             {
             player = 'X';
             depth = 0;
-            outComes[i] = moveEval(boardCopy, player, depth, maxDepth, goodness);
+            outComes[i] = moveEval(boardCopy, player, depth, maxDepth);
             if(outComes[i] == 10)
                 {
                 printOutComes(outComes, freeSpaces, free);
@@ -252,21 +254,37 @@ int AI(char board[rows][collumns], char player)
             }
         }
     printOutComes(outComes, freeSpaces, free);
-    for( int i = 0; i < free; i++)
-        if(outComes[i] == 10)
-            return freeSpaces[i];
+    out = outComes[0];
     int count = 0;
     int ties[free];
     for( int i = 0; i < free; i++)
-        if(outComes[i] == 0)
+        {
+        if(outComes[i] == 10)
+            return freeSpaces[i];
+        if(out < outComes[i])
+            {
+            out = outComes[i];
+            count = 0;
+            }
+        if(out == outComes[i])
             {
             ties[count] = i;
             count++;
             }
-    if (count)
-        return freeSpaces[ties[rand()%count]];
-    return freeSpaces[rand()%free];
-    
+        }
+    return freeSpaces[ties[rand()%count]];
+//    int count = 0;
+//    int ties[free];
+//    for( int i = 0; i < free; i++)
+//        if(outComes[i] == 0)
+//            {
+//            ties[count] = i;
+//            count++;
+//            }
+//    if (count)
+//        return freeSpaces[ties[rand()%count]];
+//    return freeSpaces[rand()%free];
+//
 }
 
 int frees(char board[rows][collumns])
@@ -274,8 +292,9 @@ int frees(char board[rows][collumns])
     int free = 0;
     
     for( int j = 0; j < collumns; j++)
-        if((board[0][j] != 'X') && (board[0][j] != 'O'))
+        if(board[0][j] == ' ')
             free++;
+    
     return free;
 }
 
@@ -304,10 +323,10 @@ void testPlace(char board[rows][collumns], char player, int placement)
         }
 }
 
-int moveEval(char board[rows][collumns], char player, int depth, int maxDepth, int goodness)
+int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
 {
     if(depth >= maxDepth)
-        return 0;
+        return -1;
     char boardCopy[rows][collumns];
     int free = 0;
     for( int i = 0; i < rows; i++)
@@ -317,78 +336,95 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth, i
     int freeSpaces[free];
     freesLocations(freeSpaces, boardCopy);
     int outComes[free];
+    int goodness = 0;
     
     
     if(player == 'O')
         {
-        for(int i = 0; i < free; i++)
+        for(int x = 0; x < free; x++)
             {
             player = 'O';
+            
             for( int i = 0; i < rows; i++)
                 for(int j = 0; j < collumns; j++)
                     boardCopy[i][j] = board[i][j];
-            testPlace(boardCopy, player, freeSpaces[i]);
-            
+            testPlace(boardCopy, player, freeSpaces[x]);
             if( gameState(boardCopy) == 'D')
-                outComes[i] = 0;
+                outComes[x] = 0;
             else if(gameState(boardCopy ) == 'X')
-                outComes[i] = -10;
+                {
+                outComes[x] = -10;
+                }
             else if( gameState(boardCopy) == 'O')
                 return 10;
             else
                 {
                 player = 'X';
                 depth++;
-                outComes[i] = moveEval(boardCopy, player, depth, maxDepth, goodness);
-                if(outComes[i] == 10)
+                outComes[x] = moveEval(boardCopy, player, depth, maxDepth);
+                if(outComes[x] == 10)
                     return 10;
                 }
             }
         for(int i = 0; i < free; i++)
+            goodness += outComes[i];
+        goodness = goodness/free;
+        for(int i = 0; i < free; i++)
             if( outComes[i] == 10)
                 return 10;
-        for(int i = 0; i < free; i++)
-            if( outComes[i] == 0)
-                return 0;
-        for(int i = 0; i < free; i++)
-            if( outComes[i] == -10)
-                return -10;
+        return goodness;
+//        for(int i = 0; i < free; i++)
+//            if( outComes[i] == 0)
+//                return 0;
+//        for(int i = 0; i < free; i++)
+//            if( outComes[i] == -10)
+//                return -10;
         }
     else if(player == 'X')
         {
-        for(int i = 0; i < free; i++)
+        for(int x = 0; x < free; x++)
             {
             player = 'X';
             for( int i = 0; i < rows; i++)
                 for(int j = 0; j < collumns; j++)
                     boardCopy[i][j] = board[i][j];
-            testPlace(boardCopy, player, freeSpaces[i]);
+            testPlace(boardCopy, player, freeSpaces[x]);
             if( gameState(boardCopy) == 'D')
-                outComes[i] = 0;
+                outComes[x] = 0;
             else if(gameState(boardCopy ) == 'X')
                 return -10;
             else if( gameState(boardCopy) == 'O')
-                outComes[i] = 10;
+                {
+                outComes[x] = 10;
+                }
             else
                 {
                 player = 'O';
                 depth++;
-                outComes[i] = moveEval(boardCopy, player, depth, maxDepth, goodness);
-                if(outComes[i] == -10)
-                    {
+                outComes[x] = moveEval(boardCopy, player, depth, maxDepth);
+                if(outComes[x] == -10)
                     return -10;
-                    }
                 }
             }
+        
+        for(int i = 0; i < free; i++)
+            goodness += outComes[i];
+        goodness = goodness/free;
         for(int i = 0; i < free; i++)
             if( outComes[i] == -10)
                 return -10;
-        for(int i = 0; i < free; i++)
-            if( outComes[i] == 0)
-                return 0;
-        for(int i = 0; i < free; i++)
-            if( outComes[i] == 10)
-                return 10;
+        if (goodness>10)
+            printf("%d", goodness);
+        return goodness;
+//        for(int i = 0; i < free; i++)
+//            if( outComes[i] == -10)
+//                return -10;
+//        for(int i = 0; i < free; i++)
+//            if( outComes[i] == 0)
+//                return 0;
+//        for(int i = 0; i < free; i++)
+//            if( outComes[i] == 10)
+//                return 10;
         }
     drawBoard(board);
     drawBoard(boardCopy);
