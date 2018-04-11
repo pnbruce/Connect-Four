@@ -27,7 +27,7 @@ void printOutComes(int a[], int b[], int);
 
 int main()
 {
-    srand(time(0));
+    srand((unsigned)time(0));
     char startingPlayer = 'X';
     char player = startingPlayer;
     char board[rows][collumns];
@@ -96,7 +96,6 @@ void takeTurn(char board[rows][collumns], char player)
             placed = 1;
             board[i][placement] = player;
             }
-    
 }
 
 //returns the opponent of the current player
@@ -220,7 +219,7 @@ int AI(char board[rows][collumns], char player)
     freesLocations(freeSpaces, boardCopy);
     int outComes[free];
     int depth = 0;
-    int maxDepth = 17;
+    int maxDepth = 20;
     int out;
     
     for(int i = 0; i < free; i++)
@@ -273,18 +272,6 @@ int AI(char board[rows][collumns], char player)
             }
         }
     return freeSpaces[ties[rand()%count]];
-//    int count = 0;
-//    int ties[free];
-//    for( int i = 0; i < free; i++)
-//        if(outComes[i] == 0)
-//            {
-//            ties[count] = i;
-//            count++;
-//            }
-//    if (count)
-//        return freeSpaces[ties[rand()%count]];
-//    return freeSpaces[rand()%free];
-//
 }
 
 int frees(char board[rows][collumns])
@@ -302,8 +289,9 @@ void freesLocations(int freeSpaces[], char board[rows][collumns])
 {
     int* slider = freeSpaces;
     for( int j = 0; j < collumns; j++)
-        if((board[0][j] != 'X') && (board[0][j] != 'O'))
+        if(board[0][j] == ' ')
             {
+            
             *slider = j;
             slider++;
             }
@@ -313,14 +301,14 @@ void freesLocations(int freeSpaces[], char board[rows][collumns])
 void testPlace(char board[rows][collumns], char player, int placement)
 {
     short placed = 0;
+    if (placement >= collumns||placement < 0)
+        drawBoard(board);
     for(int i = 0; !placed; i++)
-        {
         if(board[i+1][placement] != ' ')
             {
             placed = 1;
             board[i][placement] = player;
             }
-        }
 }
 
 int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
@@ -348,6 +336,13 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
             for( int i = 0; i < rows; i++)
                 for(int j = 0; j < collumns; j++)
                     boardCopy[i][j] = board[i][j];
+            if(freeSpaces[x] >= collumns||freeSpaces[x] < 0)
+                {
+                for(int i = 0; i<=x; i++)
+                    {
+                    printf("%d",freeSpaces[i]);
+                    }
+                }
             testPlace(boardCopy, player, freeSpaces[x]);
             if( gameState(boardCopy) == 'D')
                 outComes[x] = 0;
@@ -366,19 +361,16 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
                     return 10;
                 }
             }
+        
         for(int i = 0; i < free; i++)
             goodness += outComes[i];
         goodness = goodness/free;
+        
         for(int i = 0; i < free; i++)
             if( outComes[i] == 10)
                 return 10;
+        
         return goodness;
-//        for(int i = 0; i < free; i++)
-//            if( outComes[i] == 0)
-//                return 0;
-//        for(int i = 0; i < free; i++)
-//            if( outComes[i] == -10)
-//                return -10;
         }
     else if(player == 'X')
         {
@@ -413,22 +405,15 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
         for(int i = 0; i < free; i++)
             if( outComes[i] == -10)
                 return -10;
-        if (goodness>10)
-            printf("%d", goodness);
+        if (goodness>10 || goodness < -10)
+            printf("%d, ", goodness);
         return goodness;
-//        for(int i = 0; i < free; i++)
-//            if( outComes[i] == -10)
-//                return -10;
-//        for(int i = 0; i < free; i++)
-//            if( outComes[i] == 0)
-//                return 0;
-//        for(int i = 0; i < free; i++)
-//            if( outComes[i] == 10)
-//                return 10;
         }
+    
     drawBoard(board);
     drawBoard(boardCopy);
     printf("there was a problem\n");
+    
     return 0;
 }
 
