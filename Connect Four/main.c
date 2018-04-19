@@ -37,17 +37,18 @@ int main()
     short playAgain = 1;
     char yesNo;
     
-    if(rand()%2 == 0)
-        startingPlayer = 'O';
-    else
-        startingPlayer = 'X';
-    
-    player = startingPlayer;
+
     
     printf("WELCOME TO CONNECT FOUR\n\n");
     while(playAgain)
         {
+        if(rand()%2 == 0)
+            startingPlayer = 'O';
+        else
+            startingPlayer = 'X';
+        player = startingPlayer;
         valid = 0;
+        
         while(!valid)
             {
             printf("Enter Dificulty Level (1-20):");
@@ -100,7 +101,6 @@ int main()
 //displayes the current state of the board.
 void drawBoard(char board[rows][collumns])
 {
-    system("clear");
     printf("\n\n\n\n\n\n\n  1   2   3   4   5   6   7\n");
     for(int i = 0; i < rows; i++)
         {
