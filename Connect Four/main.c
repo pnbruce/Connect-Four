@@ -14,11 +14,11 @@ int rows = 6;
 int collumns = 7;
 
 void drawBoard(char board[rows][collumns]);
-void takeTurn(char board[rows][collumns], char player);
+void takeTurn(char board[rows][collumns], char player, int);
 char switchPlayer(char);
 char gameState(char board[rows][collumns]);
 void winner(char board[rows][collumns], short*);
-int AI(char board[rows][collumns], char );
+int AI(char board[rows][collumns], char,int );
 int frees( char board[rows][collumns]);
 void freesLocations(int*, char board[rows][collumns]);
 void testPlace(char board[rows][collumns], char player, int placement);
@@ -28,37 +28,80 @@ void printOutComes(int a[], int b[], int);
 int main()
 {
     srand((unsigned)time(0));
-    char startingPlayer = 'X';
-    char player = startingPlayer;
+    char startingPlayer;
+    char player;
     char board[rows][collumns];
     short gameOn = 1;
+    int maxDepth = 1;
+    short valid;
+    short playAgain = 1;
+    char yesNo;
     
-    //populates an empty board
-    for(int i = 0; i < rows; i++)
+    if(rand()%2 == 0)
+        startingPlayer = 'O';
+    else
+        startingPlayer = 'X';
+    
+    player = startingPlayer;
+    
+    printf("WELCOME TO CONNECT FOUR\n\n");
+    while(playAgain)
         {
-        for(int j = 0; j < collumns; j++)
+        valid = 0;
+        while(!valid)
             {
-            board[i][j] = ' ';
+            printf("Enter Dificulty Level (1-20):");
+            scanf("%d", &maxDepth);
+            if(maxDepth > 0 &&maxDepth <= 20 )
+                valid = 1;
+            else
+                printf("Try again\n");
+            }
+        
+        //populates an empty board
+        for(int i = 0; i < rows; i++)
+            {
+            for(int j = 0; j < collumns; j++)
+                {
+                board[i][j] = ' ';
+                }
+            }
+        
+        drawBoard(board);
+
+        while(gameOn)
+            {
+            takeTurn(board, player, maxDepth);
+            drawBoard(board);
+            player = switchPlayer(player);
+            winner(board, &gameOn);
+            }
+        valid = 0;
+        while(!valid)
+            {
+            printf("\n\nWould you like to play again? (y/n):\n");
+            scanf("%c", &yesNo);
+            if(yesNo == 'n')
+                playAgain = 0;
+            if(yesNo == 'y')
+                gameOn = 1;
+            if(yesNo == 'n' || yesNo == 'y' )
+                {
+                valid = 1;
+                printf("\n\n");
+                }
+            else
+                printf("Try again\n");
             }
         }
-    
-    drawBoard(board);
-
-    while(gameOn)
-        {
-        takeTurn(board, player);
-        drawBoard(board);
-        player = switchPlayer(player);
-        winner(board, &gameOn);
-        }
-    
     return 0;
 }
 
 //displayes the current state of the board.
 void drawBoard(char board[rows][collumns])
 {
-    printf("\n\n\n\n\n\n\n  0   1   2   3   4   5   6\n");
+    system("clear");
+    printf("\n\n\n\n\n\n\n  1   2   3   4   5   6   7\n");
     for(int i = 0; i < rows; i++)
         {
         printf("|");
@@ -70,7 +113,7 @@ void drawBoard(char board[rows][collumns])
         }
 }
 
-void takeTurn(char board[rows][collumns], char player)
+void takeTurn(char board[rows][collumns], char player, int maxDepth)
 {
     int placement = 0;
     short placed = 0;
@@ -80,9 +123,12 @@ void takeTurn(char board[rows][collumns], char player)
         {
         printf("Which column would you like to drop your piece down, %c?\n", player);
         if(player == 'X')
+            {
             scanf("%d", &placement);
+            placement--;
+            }
         else
-            placement = AI(board, player);
+            placement = AI(board, player, maxDepth);
         
         if(board[0][placement] != ' ' || placement < 0 || placement > rows)
             printf("That is not a legal move!\n\n");
@@ -207,7 +253,7 @@ void winner(char board[rows][collumns], short* gameOnPtr)
         }
 }
 
-int AI(char board[rows][collumns], char player)
+int AI(char board[rows][collumns], char player, int maxDepth)
 {
     char boardCopy[rows][collumns];
     for( int q = 0; q < rows; q++)
@@ -219,7 +265,6 @@ int AI(char board[rows][collumns], char player)
     freesLocations(freeSpaces, boardCopy);
     int outComes[free];
     int depth = 0;
-    int maxDepth = 20;
     int out;
     
     for(int i = 0; i < free; i++)
@@ -291,7 +336,6 @@ void freesLocations(int freeSpaces[], char board[rows][collumns])
     for( int j = 0; j < collumns; j++)
         if(board[0][j] == ' ')
             {
-            
             *slider = j;
             slider++;
             }
@@ -418,9 +462,12 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
 }
 
 void printOutComes( int a[], int b[], int free ){
+    int shift;
     
     printf( "\n" );
-    for(int i = 0; i < free; i++)
-        printf("%d: %d\n", b[i], a[i]);
+    for(int i = 0; i < free; i++){
+        shift = b[i] + 1;
+        printf("%d: %d\n", shift, a[i]);
+    }
     printf("\n");
 }
