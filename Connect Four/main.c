@@ -24,6 +24,8 @@ void freesLocations(int*, char board[rows][collumns]);
 void testPlace(char board[rows][collumns], char player, int placement);
 int moveEval(char board[rows][collumns], char player, int depth, int maxDepth);
 void printOutComes(int a[], int b[], int);
+int newHighScore(int score);
+void checkHighScoreFile(void);
 
 int main()
 {
@@ -36,10 +38,14 @@ int main()
     short valid;
     short playAgain = 1;
     char yesNo;
+    int score = 0;
     
-
+    //see if there is a high score file. if there isnt one it make one.
+    checkHighScoreFile();
+    
     
     printf("WELCOME TO CONNECT FOUR\n\n");
+    
     while(playAgain)
         {
         if(rand()%2 == 0)
@@ -48,6 +54,16 @@ int main()
             startingPlayer = 'X';
         player = startingPlayer;
         valid = 0;
+        
+        int currentHighScore = 100;
+        char currentUsername[3];
+        FILE* highScores = fopen("HighScores.txt", "r");
+        int idkWhyThisWorks;
+        fscanf(highScores, "%d", &currentHighScore);
+        idkWhyThisWorks = currentHighScore;
+        fscanf(highScores, "%s", currentUsername);
+        printf("Previous Best:\n%s won in just %d moves!\n\n", currentUsername, idkWhyThisWorks);
+        fclose(highScores);
         
         while(!valid)
             {
@@ -72,11 +88,40 @@ int main()
 
         while(gameOn)
             {
+            player = switchPlayer(player);
             takeTurn(board, player, maxDepth);
             drawBoard(board);
-            player = switchPlayer(player);
             winner(board, &gameOn);
+            score++;
             }
+        
+        if(newHighScore(score) && player == 'X')
+            {
+            printf("YOU HAVE THE NEW BEST GAME!\nIt took %d to beat the machine.\n\n", score);
+            char username[4];
+            valid = 0;
+            while (!valid)
+                {
+                    printf("Please enter a 3 letter user name:\n");
+                    scanf("%s", &username);
+                    printf(username);
+                    if(username[3] == '\0')
+                        {
+                        valid = 1;
+                        }
+                    else
+                        {
+                        printf("Try again.\n\n");
+                        }
+                    }
+            FILE* highScores;
+            highScores = fopen("HighScores.txt", "w");
+            fprintf(highScores, "%d ", score);
+            fprintf(highScores, "%s", username);
+            fclose(highScores);
+            }
+        
+        
         valid = 0;
         while(!valid)
             {
@@ -384,7 +429,7 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
                 {
                 for(int i = 0; i<=x; i++)
                     {
-                    printf("%d",freeSpaces[i]);
+                    printf("free space issue:%d\n",freeSpaces[i]);
                     }
                 }
             testPlace(boardCopy, player, freeSpaces[x]);
@@ -450,7 +495,8 @@ int moveEval(char board[rows][collumns], char player, int depth, int maxDepth)
             if( outComes[i] == -10)
                 return -10;
         if (goodness>10 || goodness < -10)
-            printf("%d, ", goodness);
+            
+            printf("goodness problem %d, ", goodness);
         return goodness;
         }
     
@@ -470,4 +516,35 @@ void printOutComes( int a[], int b[], int free ){
         printf("%d: %d\n", shift, a[i]);
     }
     printf("\n");
+}
+
+int newHighScore(int score)
+{
+    FILE* highScores;
+    int currentHighScore;
+    highScores = fopen("HighScores.txt", "r");
+    fscanf(highScores, "%d", &currentHighScore);
+    
+    if(score > currentHighScore)
+        {
+        return 0;
+        }
+    else
+        {
+        return 1;
+        }
+}
+
+void checkHighScoreFile()
+{
+    FILE* highScores;
+    
+    highScores = fopen("HighScores.txt", "r");
+    if(highScores == NULL)
+        {
+        highScores = fopen("HighScores.txt", "w");
+        fprintf(highScores, "%d ", 42);
+        fprintf(highScores, "%s", "DEV");
+        }
+    fclose(highScores);
 }
